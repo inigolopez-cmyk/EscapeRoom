@@ -34,6 +34,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	bool isTriggered = false;
 
+	UPROPERTY(VisibleAnywhere)
+	int32 activatorCount = 0;
+
 	UPROPERTY(EditAnywhere)
 	AActor* moveActor;
 

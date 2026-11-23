@@ -11,9 +11,20 @@ UPressurePlate::UPressurePlate()
 void UPressurePlate::BeginPlay()
 {
 	Super::BeginPlay();
+	if (moveActor != nullptr)
+	{
+		moveComponent = moveActor->FindComponentByClass<UMove>();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("MOVE COMPONENT IS NULL"));
+	}
 
-	OnComponentBeginOverlap.AddDynamic(this, &UPressurePlate::OnOverlapBegin);
-	OnComponentEndOverlap.AddDynamic(this, &UPressurePlate::OnOverlapEnd);
+	if (isPressurePlate)
+	{
+		OnComponentBeginOverlap.AddDynamic(this, &UPressurePlate::OnOverlapBegin);
+		OnComponentEndOverlap.AddDynamic(this, &UPressurePlate::OnOverlapEnd);
+	}
 }
 
 void UPressurePlate::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -23,6 +34,11 @@ void UPressurePlate::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 void UPressurePlate::Trigger(bool triggerValue)
 {
+	isTriggered = triggerValue;
+	if (moveComponent)
+	{
+		moveComponent->SetShouldMove(isTriggered);
+	}
 }
 
 void UPressurePlate::OnOverlapBegin(UPrimitiveComponent* overlapedComp, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, 
@@ -30,7 +46,11 @@ void UPressurePlate::OnOverlapBegin(UPrimitiveComponent* overlapedComp, AActor* 
 {
 	if (otherActor && otherActor->ActorHasTag("Player"))
 	{
-		isTriggered = true;
+		activatorCount++;
+		if (!isTriggered && activatorCount == 1)
+		{
+			Trigger(true);
+		}
 
 		UE_LOG(LogTemp, Display, TEXT("On Player Overlap")); //print("") = UE_LOG(LogTemp, Display, TEXT("On Player Overlap");
 	}
@@ -41,7 +61,11 @@ void UPressurePlate::OnOverlapEnd(UPrimitiveComponent* overlapedComp, AActor* ot
 {
 	if (otherActor && otherActor->ActorHasTag("Player"))
 	{
-		isTriggered = false;
+		activatorCount--;
+		if (isTriggered && activatorCount == 0)
+		{
+			Trigger(false);
+		}
 
 		UE_LOG(LogTemp, Display, TEXT("No Player")); //print("") = UE_LOG(LogTemp, Display, TEXT("On Player Overlap");
 	}
