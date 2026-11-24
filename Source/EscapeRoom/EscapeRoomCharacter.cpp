@@ -123,6 +123,34 @@ void AEscapeRoomCharacter::DoJumpEnd()
 
 void AEscapeRoomCharacter::DoInteract()
 {
+	FVector start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector end = start + (FirstPersonCameraComponent->GetForwardVector() * 300);
+
+	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 5);
+
+	FCollisionShape interactSphere = FCollisionShape::MakeSphere(25);
+	DrawDebugSphere(GetWorld(), end, 25, 10, FColor::Blue, false, 5);
+
+	FHitResult hit;
+	bool hasHit = GetWorld()->SweepSingleByChannel(hit, start, end, FQuat::Identity, ECC_GameTraceChannel2, interactSphere);
+
+	if (hasHit)
+	{
+		AActor* hitActor = hit.GetActor();
+		if (hitActor->ActorHasTag("CollectableItem"))
+		{
+			ACollectableItem* currentItem = Cast<ACollectableItem>(hitActor);
+			if (currentItem)
+			{
+				GEngine->AddOnScreenDebugMessage(1, 5, FColor::Green, FString::Printf(TEXT("Get Item %s"), *currentItem->itemName));
+				Inventory.Add(currentItem->itemName);
+				currentItem->Destroy();
+
+
+			}
+		}
+	}
+
 	UE_LOG(LogTemp, Display, TEXT("U Interact!!!"));
 	GEngine->AddOnScreenDebugMessage(1, 5, FColor::Red, TEXT("U Interact!!!"));
 }
